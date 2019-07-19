@@ -278,7 +278,8 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
                 cur_mask = m['mask_total'][:]
                 itkimage = sitk.GetImageFromArray(cur_mask)
                 imgs = sitk.GetArrayFromImage(itkimage)
-                imgs= img_resize(imgs, img_rows, img_cols, equalize=False)
+                imgs = img_resize(imgs, img_rows, img_cols, equalize=False)
+                np.clip(imgs, 0, 7, out=imgs)
                 masks.append(imgs.astype('int'))
 
                 s = h5py.File(os.path.join(base_path, 'TrainingData', filename), 'r')
@@ -308,7 +309,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
         elif count==1:
             images = (images - mu)/sigma
             np.save(os.path.join(store_path, 'X_val.npy'), images)
-            np.save(os.path.join(store_path,'y_val.npy'), masks)
+
         count+=1
 
     fileList =  os.listdir(os.path.join(base_path, 'TestData'))
@@ -321,6 +322,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
         itkimage = sitk.GetImageFromArray(cur_mask)
         imgs = sitk.GetArrayFromImage(itkimage)
         imgs = img_resize(imgs, img_rows, img_cols, equalize=False)
+        np.clip(imgs, 0, 7, out=imgs)
         masks.append(imgs.astype('int'))
 
         s = h5py.File(os.path.join(base_path, 'TestData', filename), 'r')

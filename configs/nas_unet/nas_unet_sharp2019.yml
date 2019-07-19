@@ -48,7 +48,7 @@ training:
     max_patience: 100
     model_optimizer:
         name: 'adam'
-        lr: 7.0e-3
+        lr: 1.0e-3
         weight_decay: 5.0e-4
     loss:
         name: 'dice_loss'
