@@ -11,6 +11,7 @@ from .bladder import Bladder
 from .chaos import CHAOS
 from .promise12 import Promise12
 from .camvid import  CamVid
+from .sharp2019 import Sharp2019
 
 datasets = {
     'coco': COCOSegmentation,
@@ -24,7 +25,8 @@ datasets = {
     'bladder': Bladder,
     'chaos' : CHAOS,
     'promise12': Promise12,
-    'camvid': CamVid
+    'camvid': CamVid,
+    'sharp2019': Sharp2019,
 }
 
 acronyms = {
@@ -43,7 +45,7 @@ acronyms = {
     'camvid': 'camvid'
 }
 
-dir = '/train_tiny_data/imgseg/'
+dir = 'D:\\pythonProjects\\imgSeg\\'
 #=
 #dir = '../../../training_data/imageSeg/'
 
