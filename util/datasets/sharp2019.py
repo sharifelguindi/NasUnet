@@ -252,9 +252,6 @@ def img_resize(imgs, img_rows, img_cols, equalize=True):
     else:
         imgs_norm_clip = imgs
 
-    else:
-        imgs_norm_clip = imgs
-
     for mm, img in enumerate(imgs_norm_clip):
         new_imgs[mm] = cv2.resize(imgs_norm_clip, (img_rows, img_cols), interpolation=cv2.INTER_NEAREST )
 
@@ -313,11 +310,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
             np.save(os.path.join(store_path,'y_train.npy'), masks)
         elif count==1:
             images = (images - mu)/sigma
-<<<<<<< HEAD
-            np.save(os.path.join(store_path, 'Y_val.npy'), masks)
-=======
             np.save(os.path.join(store_path, 'y_val.npy'), masks)
->>>>>>> 37693244ff4a2c72619c5eca32ef170c34fd77ca
             np.save(os.path.join(store_path, 'X_val.npy'), images)
 
         count+=1
