@@ -250,6 +250,9 @@ def img_resize(imgs, img_rows, img_cols, equalize=True):
         imgs_norm = cv2.normalize(imgs, None, -1.0, 1.0, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
         imgs_norm_clip = np.clip(imgs_norm, -1, 1)
 
+    else:
+        imgs_norm_clip = imgs
+
     for mm, img in enumerate(imgs_norm_clip):
         new_imgs[mm] = cv2.resize(img, (img_rows, img_cols), interpolation=cv2.INTER_NEAREST )
 
@@ -308,6 +311,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
             np.save(os.path.join(store_path,'y_train.npy'), masks)
         elif count==1:
             images = (images - mu)/sigma
+            np.save(os.path.join(store_path, 'Y_val.npy'), masks)
             np.save(os.path.join(store_path, 'X_val.npy'), images)
 
         count+=1
@@ -511,3 +515,23 @@ class customDataset(data.Dataset):
 
     def __len__(self):
         return len(self.images)
+
+
+# import os
+# import sys
+# import cv2
+# import torch
+# import subprocess
+# import numpy as np
+# import SimpleITK as sitk
+# from os import listdir
+# from os.path import isfile, join, splitext
+# from skimage.exposure import equalize_adapthist
+# from util.datasets.base import BaseDataset
+# from util.utils import create_exp_dir
+# from util.augmentations import smooth_images
+# from util.augmentations import *
+# import h5py
+# base_path = '/cluster/home/elguinds/publicDatasets/imgSeg/SHARP2019/'
+# store_path = base_path + 'npy_image/'
+# data_to_array(base_path, store_path, 384, 384)

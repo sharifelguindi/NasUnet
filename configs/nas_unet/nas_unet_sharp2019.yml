@@ -38,20 +38,20 @@ training:
     geno_type: NASUNET
     init_channels: 32
     depth: 5
-    epoch: 200
-    batch_size: 4
-    report_freq: 100
-    n_workers: 1
-    multi_gpus: False
+    epoch: 500
+    batch_size: 16
+    report_freq: 50
+    n_workers: 4
+    multi_gpus: True
     double_down_channel: False
     grad_clip: 3
     max_patience: 100
     model_optimizer:
         name: 'adam'
         lr: 1.0e-3
-        weight_decay: 5.0e-4
+        weight_decay: 5.0e-5
     loss:
-        name: 'dice_loss'
+        name: 'cross_entropy'
         aux_weight: 0
     backbone:
     lr_schedule:
