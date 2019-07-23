@@ -2,7 +2,7 @@ model:
     arch: nasunet
 data:
     dataset: sharp2019
-    train_split: train_aug
+    train_split: test
     split: val
     img_rows: 'same'
     img_cols: 'same'
@@ -39,7 +39,7 @@ training:
     init_channels: 32
     depth: 5
     epoch: 500
-    batch_size: 16
+    batch_size: 1
     report_freq: 50
     n_workers: 4
     multi_gpus: True
@@ -57,4 +57,4 @@ training:
     lr_schedule:
         name: 'cos'
         T_max: 100
-    resume:
+    resume: '/cluster/home/elguinds/NasUnet/logs/nasunet/train/sharp2019/20190719-170012/checkpint.pth.tar'
