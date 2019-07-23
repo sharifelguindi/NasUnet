@@ -58,4 +58,4 @@ training:
     lr_schedule:
         name: 'cos'
         T_max: 100
-    resume: 'D:\\pythonProjects\\NasUnet\\logs\\nasunet\\train\\promise12\\20190718-132244\\checkpint.pth.tar'
+    resume: 'D:\\pythonProjects\\NasUnet\\logs\\nasunet\\train\\promise12\\20190723-134029\\checkpint.pth.tar'

@@ -253,30 +253,27 @@ def img_resize(imgs, img_rows, img_cols, equalize=True):
         imgs_norm_clip = imgs
 
     for mm, img in enumerate(imgs_norm_clip):
-        new_imgs[mm] = cv2.resize(imgs_norm_clip, (img_rows, img_cols), interpolation=cv2.INTER_NEAREST )
+        new_imgs[mm] = cv2.resize(img, (img_rows, img_cols), interpolation=cv2.INTER_NEAREST )
 
-    return new_imgs
+    return new_imgs.transpose(0, 2, 1)
 
 def data_to_array(base_path, store_path, img_rows, img_cols):
 
-    clahe = cv2.createCLAHE(clipLimit=0.05, tileGridSize=(int(img_rows/8),int(img_cols/8)))
+    clahe = cv2.createCLAHE(clipLimit=0.05, tileGridSize=(int(img_rows/8), int(img_cols/8)))
 
     fileList =  os.listdir(os.path.join(base_path, 'TrainingData'))
     fileList = sorted((x for x in fileList if 'scan' in x))
 
     val_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    train_list = list(set(range(53)) - set(val_list) )
+    train_list = list(set(range(53)) - set(val_list))
     count = 0
     for the_list in [train_list,  val_list]:
         images = []
         masks = []
+        for filename in the_list:
 
-        filtered = [file for file in fileList for ff in the_list if str(ff).zfill(2) in file ]
-
-        for filename in filtered:
-
-                m = h5py.File(os.path.join(base_path, 'TrainingData', filename.replace('scan', 'mask_total')), 'r')
+                m = h5py.File(os.path.join(base_path, 'TrainingData', fileList[filename].replace('scan', 'mask_total')), 'r')
                 cur_mask = m['mask_total'][:]
                 itkimage = sitk.GetImageFromArray(cur_mask)
                 imgs = sitk.GetArrayFromImage(itkimage)
@@ -284,7 +281,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
                 np.clip(imgs, 0, 7, out=imgs)
                 masks.append(imgs.astype('int'))
 
-                s = h5py.File(os.path.join(base_path, 'TrainingData', filename), 'r')
+                s = h5py.File(os.path.join(base_path, 'TrainingData', fileList[filename]), 'r')
                 cur_scan = s['scan'][:]
                 print(filename)
                 itkimage = sitk.GetImageFromArray(cur_scan)
@@ -367,7 +364,7 @@ def load_test_data(store_path):
 
 def get_test_list(base_path):
     fileList = os.listdir(os.path.join(base_path, 'TestData'))
-    fileList = sorted([os.path.join(base_path, 'TestData',x) for x in fileList if '.mhd' in x])
+    fileList = sorted([os.path.join(base_path, 'TestData',x) for x in fileList if 'SCAN*' in x])
     return fileList
 
 
@@ -377,7 +374,7 @@ class Sharp2019(BaseDataset):
     TRAIN_IMAGE_DIR = 'TrainingData'
     VAL_IMAGE_DIR = 'TestData'
     NUM_CLASS = 8
-    CROP_SIZE = 384
+    CROP_SIZE = 480
     CLASS_WEIGHTS = None
 
     def __init__(self, root, split='train', mode=None):

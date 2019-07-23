@@ -189,7 +189,7 @@ def dice_coefficient(input, target, smooth=1.0):
     den2 = torch.sum(den2, dim=3)  # b, c, h
     den2 = torch.sum(den2, dim=2)  # b, c
 
-    dice = (2 * num + smooth) / (den1 + den2 + smooth) # b, c
+    dice = (2 * num[0:6] + smooth) / (den1[0:6] + den2[0:6] + smooth) # b, c
 
     return dice.mean().mean()
 

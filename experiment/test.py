@@ -21,6 +21,7 @@ from util.challenge.promise12.metrics import biomedical_image_metric, numpy_dice
 from util.metrics import *
 from PIL import Image
 from models import geno_searched
+
 # from util.crf import dense_crf
 
 class TestNetwork(object):
@@ -38,11 +39,11 @@ class TestNetwork(object):
         parser = argparse.ArgumentParser(description='config')
 
         # Add default argument
-        parser.add_argument('--config',nargs='?',type=str,default='../configs/nas_unet/nas_unet_nerve.yml',
+        parser.add_argument('--config',nargs='?',type=str,default='../configs/nas_unet/nas_unet_promise12.yml',
                             help='Configuration file to use')
         parser.add_argument('--model',nargs='?',type=str,default='nasunet',
                             help='Model to test')
-        parser.add_argument('--crf',action='store_true', default= False,
+        parser.add_argument('--crf',action='store_true', default=False,
                             help='Model to test')
 
 
@@ -116,7 +117,7 @@ class TestNetwork(object):
 
         # Setup Model
         try:
-            genotype = eval('geno_types.%s' % self.cfg['training']['geno_type'])
+            genotype = eval('geno_searched.%s' % self.cfg['training']['geno_type'])
             init_channels = self.cfg['training']['init_channels']
             depth = self.cfg['training']['depth']
         except:
@@ -194,7 +195,7 @@ class TestNetwork(object):
                             img.save(os.path.join(desc,file_name))
                         else:
                             img = Image.fromarray((torch.argmax(predicts[0].cpu(),1)[i] * 255).numpy().astype(np.uint8))
-                            file_name = os.path.split(target[i])[1]
+                            file_name = os.path.split(target[i][0])[1]
                             file_name = file_name.split('.')[0]+'_mask.tif'
                             img.save(os.path.join(desc,file_name))
 
@@ -234,12 +235,12 @@ class TestNetwork(object):
         if not os.path.exists(self.save_image_path):
             os.makedirs(self.save_image_path)
 
-        # if len(self.valid_queue) != 0:
-        #     self.logger.info('Begin valid set evaluation')
-        #     self.test(self.valid_queue, split='val', desc='promise12')
+        if len(self.valid_queue) != 0:
+            self.logger.info('Begin valid set evaluation')
+            self.test(self.valid_queue, split='val', desc='../predictions/promise12')
         if len(self.test_queue) != 0:
             self.logger.info('Begin test set evaluation')
-            self.test(self.test_queue, split='test', desc='../predictions/nerve_rst')
+            self.test(self.test_queue, split='test', desc='../predictions/promise12')
         self.logger.info('Evaluation done!')
 
 

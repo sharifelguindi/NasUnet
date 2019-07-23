@@ -82,7 +82,7 @@ class Network(object):
     def _init_dataset(self):
         trainset = get_dataset(self.cfg['data']['dataset'], split='train', mode='train')
         valset = get_dataset(self.cfg['data']['dataset'], split='val', mode ='val')
-        # testset = get_dataset(self.cfg['data']['dataset'], split='test', mode='test')
+        testset = get_dataset(self.cfg['data']['dataset'], split='test', mode='test')
         self.nweight = trainset.class_weight
         print('dataset weights: {}'.format(self.nweight))
         self.n_classes = trainset.num_class
@@ -120,7 +120,7 @@ class Network(object):
         self.criterion = criterion.to(self.device)
 
         self.show_dice_coeff = False
-        if self.cfg['data']['dataset'] in ['bladder', 'chaos', 'ultrasound_nerve', 'promise12']:
+        if self.cfg['data']['dataset'] in ['bladder', 'chaos', 'ultrasound_nerve', 'promise12', 'sharp2019']:
             self.show_dice_coeff = True
 
         self.logger.info("Using loss {}".format(self.criterion))

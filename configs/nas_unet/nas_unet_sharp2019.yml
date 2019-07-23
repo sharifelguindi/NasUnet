@@ -2,7 +2,7 @@ model:
     arch: nasunet
 data:
     dataset: sharp2019
-    train_split: test
+    train_split: train_aug
     split: val
     img_rows: 'same'
     img_cols: 'same'
@@ -39,17 +39,17 @@ training:
     init_channels: 32
     depth: 5
     epoch: 500
-    batch_size: 1
-    report_freq: 50
-    n_workers: 4
-    multi_gpus: True
+    batch_size: 2
+    report_freq: 10
+    n_workers: 1
+    multi_gpus: False
     double_down_channel: False
     grad_clip: 3
     max_patience: 100
     model_optimizer:
         name: 'adam'
         lr: 1.0e-3
-        weight_decay: 5.0e-5
+        weight_decay: 5.0e-4
     loss:
         name: 'cross_entropy'
         aux_weight: 0
@@ -57,4 +57,4 @@ training:
     lr_schedule:
         name: 'cos'
         T_max: 100
-    resume: '/cluster/home/elguinds/NasUnet/logs/nasunet/train/sharp2019/20190719-170012/checkpint.pth.tar'
+    resume:
