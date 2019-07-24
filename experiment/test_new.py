@@ -166,21 +166,25 @@ class RunInference(object):
         accuracy = 0
         tbar = tqdm(img_queue)
         create_exp_dir(desc, desc='=>Save prediction image on')
+
         with torch.no_grad():
             for step, (input, target) in enumerate(tbar):
-                input = input.cuda(self.device)
-                print(target)
+                input = input.unsqueeze(0).cuda(self.device)
+                target = target.unsqueeze(0)
                 predicts = self.model(input)
 
-        N = predicts[0].shape[0]
-        print(N)
-        for i in range(N):
-            img = Image.fromarray(
-                predicts[0].cpu().numpy().astype(np.uint8))
-            print(img)
-            file_name = str(step)
-            file_name = file_name + '_mask_test.tif'
-            img.save(os.path.join(desc, file_name))
+                N = predicts[0].shape[0]
+                print(N)
+                for i in range(N):
+                    mask = Image.fromarray(
+                        (torch.argmax(predicts[0].cpu(), 1)[i] * 255).numpy().astype(np.uint8))
+                    img = Image.fromarray(np.array(input[0].cpu()[i, :, :]))
+                    gt = Image.fromarray(np.array(target[0].cpu()[:, :]*255).astype('uint8'))
+                    file_name = str(step)
+                    file_name = file_name + '_mask_test.tif'
+                    mask.save(os.path.join(desc, file_name))
+                    img.save(os.path.join(desc, str(step) + 'img_test.tiff'))
+                    gt.save(os.path.join(desc, str(step) + 'gt_test.tiff'))
 
     def test(self, img_queue, split='val', desc=''):
         self.model.eval()
@@ -189,14 +193,13 @@ class RunInference(object):
         tbar = tqdm(img_queue)
         create_exp_dir(desc, desc='=>Save prediction image on')
         with torch.no_grad():
+            print('inside with statement')
             for step, (input, target) in enumerate(tbar):
-                input = input.cuda(self.device)
-                print(input)
+                input = input.unsqueeze(0).cuda(self.device)
                 if not isinstance(target, list):
-                    target = target.cuda(self.device)
+                    target = target.unsqueeze(0).cuda(self.device)
 
                 predicts = self.model(input)
-                print(predicts)
                 # for cityscapes, voc, camvid, test have label
                 if not isinstance(target, list):
                     test_loss = self.criterion(predicts[0], target)
@@ -268,10 +271,9 @@ class RunInference(object):
         #     self.logger.info('Begin valid set evaluation')
         #     self.test(self.valid_queue, split='val', desc='promise12')
         if len(self.test_queue) != 0:
-            print(len(self.test_queue))
-            print(self.test_queue)
             self.logger.info('Begin test set evaluation')
-            self.run_image(self.test_queue, split='test', desc='../predictions/nerve_rst')
+
+            self.run_image(self.test_queue.dataset, split='test', desc='D:\\pythonProjects\\NasUnet\\predictions\\test_data\\')
         self.logger.info('Evaluation done!')
 
 

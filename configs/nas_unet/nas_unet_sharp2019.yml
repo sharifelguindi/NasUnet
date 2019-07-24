@@ -57,4 +57,4 @@ training:
     lr_schedule:
         name: 'exp_lr'
         gamma: 0.995
-    resume: '/cluster/home/elguinds/NasUnet/logs/nasunet/train/sharp2019/20190723-181050/checkpint.pth.tar'
+    resume: 'D:\\pythonProjects\\NasUnet\\logs\\nasunet\\train\\sharp2019\\20190723-181050\\checkpint.pth.tar'

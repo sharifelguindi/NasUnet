@@ -331,7 +331,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
         itkimage = sitk.GetImageFromArray(cur_mask)
         imgs = sitk.GetArrayFromImage(itkimage)
         for mm, slice in enumerate(imgs):
-            if np.max(slice) > 0:
+            if np.max(slice) > -1:
                 imgs_list.append(mm)
 
         imgs = img_resize(imgs, img_rows, img_cols, imgs_list, equalize=False)
@@ -347,9 +347,10 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
         images.append(imgs)
 
     images = np.concatenate(images , axis=0).reshape(-1, img_rows, img_cols)
-    images = smooth_images(images)
     images = images.astype(np.float32)
     images = (images - mu)/sigma
+    masks = np.concatenate(masks, axis=0).reshape(-1, img_rows, img_cols)
+    masks = masks.astype(np.uint8)
 
     np.save(os.path.join(store_path,'X_test.npy'), images)
     np.save(os.path.join(store_path, 'Y_test.npy'), masks)
@@ -371,13 +372,13 @@ def load_val_data(store_path):
     return X_val, y_val
 
 def load_test_data(store_path):
-    X_test = np.load(os.path.join(store_path, 'X_test.npy'))
-    x_slice_array = np.load(os.path.join(store_path, 'y_val.npy'))
-    return X_test, x_slice_array
+    X_test = np.load(os.path.join(store_path, 'X_test.npy'), allow_pickle=True)
+    Y_test = np.load(os.path.join(store_path, 'Y_test.npy'), allow_pickle=True)
+    return X_test, Y_test
 
 def get_test_list(base_path):
     fileList = os.listdir(os.path.join(base_path, 'TestData'))
-    fileList = sorted([os.path.join(base_path, 'TestData',x) for x in fileList if 'SCAN*' in x])
+    fileList = sorted([os.path.join(base_path, 'TestData', x) for x in fileList if 'SCAN' in x])
     return fileList
 
 
@@ -394,7 +395,7 @@ class Sharp2019(BaseDataset):
         super(Sharp2019, self).__init__(root, split=split, mode=mode)
         self.mode = mode
         #self.joint_transform = joint_transform
-        root = root + '/' + self.BASE_DIR
+        root = os.path.join(root, self.BASE_DIR)
         self.joint_transform = Compose([
             RandomTranslate(offset=(0.2, 0.1)),
             RandomVerticallyFlip(),
@@ -423,7 +424,7 @@ class Sharp2019(BaseDataset):
             self.X_val, self.y_val = load_val_data(data_path)
             self.size = self.X_val.shape[0]
         elif mode == 'test':
-            self.X_test, self.x_slice_array = load_test_data(data_path)
+            self.X_test, self.Y_test = load_test_data(data_path)
             self.size = self.X_test.shape[0]
 
     def __getitem__(self, index):
@@ -433,10 +434,10 @@ class Sharp2019(BaseDataset):
         elif self.mode == 'val':
             img, target = self.X_val[index], self.y_val[index]
         elif self.mode == 'test': # the test target indicate the number of slice for each case
-            img, target = self.X_test[index], self.test_file_list
+            img, target = self.X_test[index], self.Y_test[index]
         img = Image.fromarray(img, mode='F')
 
-        if self.mode != 'test':
+        if self.mode != 'new_img':
             target = Image.fromarray(target, mode='L')
             # 2. do joint transform
             if self.joint_transform is not None:
