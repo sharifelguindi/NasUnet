@@ -8,7 +8,7 @@ from tqdm import tqdm
 import torch.nn as nn
 from torch.utils import data
 import torch.backends.cudnn as cudnn
-
+from collections import OrderedDict
 sys.path.append('..')
 from util.loss.loss import SegmentationLosses
 from util.datasets import get_dataset
@@ -77,8 +77,10 @@ class Network(object):
         cudnn.enabled = True
         cudnn.benchmark = True
         self.device_id, self.gpus_info = get_gpus_memory_info()
+        self.device_id = 0
         self.device = torch.device('cuda:{}'.format(0 if self.cfg['training']['multi_gpus'] else self.device_id))
-
+        print('test ******************')
+        print(self.device)
     def _init_dataset(self):
         trainset = get_dataset(self.cfg['data']['dataset'], split='train', mode='train')
         valset = get_dataset(self.cfg['data']['dataset'], split='val', mode ='val')
@@ -189,7 +191,11 @@ class Network(object):
                     self.best_loss = checkpoint['best_loss']
                     self.best_dice_coeff = checkpoint['best_dice_coeff']
                     self.model_optimizer.load_state_dict(checkpoint['model_optimizer'])
-                self.model.load_state_dict(checkpoint['model_state'])
+                d1 = OrderedDict()
+                for key, dict in checkpoint['model_state'].items():
+                    new_key = key.replace('module.','')
+                    d1[new_key] = dict
+                self.model.load_state_dict(d1)
             else:
                 self.logger.info("No checkpoint found at '{}'".format(resume))
 

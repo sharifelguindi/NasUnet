@@ -9,7 +9,7 @@ import torch.nn as nn
 import numpy as np
 from torch.utils import data
 import torch.backends.cudnn as cudnn
-
+from collections import OrderedDict
 sys.path.append('..')
 from util.loss.loss import SegmentationLosses
 from util.datasets import get_dataset
@@ -75,6 +75,7 @@ class TestNetwork(object):
         cudnn.enabled = True
         cudnn.benchmark = True
         self.device_id, self.gpus_info = get_gpus_memory_info()
+        self.device_id = 0
         self.device = torch.device('cuda:{}'.format(0 if self.cfg['training']['multi_gpus'] else self.device_id))
 
     def _init_dataset(self):
@@ -150,7 +151,11 @@ class TestNetwork(object):
             if os.path.isfile(resume):
                 self.logger.info("Loading model and optimizer from checkpoint '{}'".format(resume))
                 checkpoint = torch.load(resume, map_location=self.device)
-                self.model.load_state_dict(checkpoint['model_state'])
+                d1 = OrderedDict()
+                for key, dict in checkpoint['model_state'].items():
+                    new_key = key.replace('module.','')
+                    d1[new_key] = dict
+                self.model.load_state_dict(d1)
                 return True
             else:
                 self.logger.info("No checkpoint found at '{}'".format(resume))
@@ -185,6 +190,7 @@ class TestNetwork(object):
                     accuracy += dice_coefficient(predicts[0].cpu(), target.cpu())
                 else:
                     N =  predicts[0].shape[0]
+                    print(N)
                     for i in range(N):
                         if self.args.crf: # use crf
                             predict = torch.argmax(predicts[0].cpu(), 1)[i]
@@ -195,9 +201,9 @@ class TestNetwork(object):
                             img.save(os.path.join(desc,file_name))
                         else:
                             img = Image.fromarray((torch.argmax(predicts[0].cpu(),1)[i] * 255).numpy().astype(np.uint8))
-                            file_name = os.path.split(target[i][0])[1]
-                            file_name = file_name.split('.')[0]+'_mask.tif'
-                            img.save(os.path.join(desc,file_name))
+                            # file_name = os.path.split(target[i][0])[1]
+                            # file_name = file_name.split('.')[0]+'_mask.tif'
+                            img.save(os.path.join(desc,str(i) + '_mask.tif'))
 
                 if desc=='promise12': # for promise12, test have not label or have label to calc extra metric
                     predict_list += [torch.argmax(predicts[0], dim=1).cpu().numpy()]

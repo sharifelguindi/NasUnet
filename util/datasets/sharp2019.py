@@ -243,17 +243,20 @@ class DataManager(object):
         writer.Execute(toWrite)
 
 
-def img_resize(imgs, img_rows, img_cols, equalize=True):
+def img_resize(imgs, img_rows, img_cols, img_list, equalize=True):
 
-    new_imgs = np.zeros([len(imgs), img_rows, img_cols])
+    new_imgs = np.zeros([len(img_list), img_rows, img_cols])
     if equalize:
         imgs_norm = cv2.normalize(imgs, None, -1.0, 1.0, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
         imgs_norm_clip = np.clip(imgs_norm, -1, 1)
     else:
         imgs_norm_clip = imgs
 
+    k = 0
     for mm, img in enumerate(imgs_norm_clip):
-        new_imgs[mm] = cv2.resize(img, (img_rows, img_cols), interpolation=cv2.INTER_NEAREST )
+        if mm in img_list:
+            new_imgs[k] = cv2.resize(img, (img_rows, img_cols), interpolation=cv2.INTER_NEAREST )
+            k = k + 1
 
     return new_imgs.transpose(0, 2, 1)
 
@@ -273,11 +276,16 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
         masks = []
         for filename in the_list:
 
-                m = h5py.File(os.path.join(base_path, 'TrainingData', fileList[filename].replace('scan', 'mask_total')), 'r')
+                imgs_list = []
+                m = h5py.File(os.path.join(base_path, 'TrainingData', fileList[filename].replace('scan', 'mask_total')),'r')
                 cur_mask = m['mask_total'][:]
                 itkimage = sitk.GetImageFromArray(cur_mask)
                 imgs = sitk.GetArrayFromImage(itkimage)
-                imgs = img_resize(imgs, img_rows, img_cols, equalize=False)
+                for mm, slice in enumerate(imgs):
+                    if np.max(slice) > 0:
+                        imgs_list.append(mm)
+
+                imgs = img_resize(imgs, img_rows, img_cols, imgs_list, equalize=False)
                 np.clip(imgs, 0, 7, out=imgs)
                 masks.append(imgs.astype('int'))
 
@@ -286,7 +294,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
                 print(filename)
                 itkimage = sitk.GetImageFromArray(cur_scan)
                 imgs = sitk.GetArrayFromImage(itkimage)
-                imgs = img_resize(imgs, img_rows, img_cols, equalize=True)
+                imgs = img_resize(imgs, img_rows, img_cols, imgs_list, equalize=True)
                 images.append(imgs)
 
         # images: slices x w x h ==> total number x w x h
@@ -295,7 +303,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
         masks = masks.astype(np.uint8)
 
         # Smooth images using CurvatureFlow
-        images = smooth_images(images)
+        # images = smooth_images(images)
         images = images.astype(np.float32)
 
         if count==0: # no normalize
@@ -317,11 +325,16 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
     masks = []
     images = []
     for filename in fileList:
+        imgs_list = []
         m = h5py.File(os.path.join(base_path, 'TestData', filename.replace('SCAN', 'SEG')), 'r')
         cur_mask = m['mask_total'][:]
         itkimage = sitk.GetImageFromArray(cur_mask)
         imgs = sitk.GetArrayFromImage(itkimage)
-        imgs = img_resize(imgs, img_rows, img_cols, equalize=False)
+        for mm, slice in enumerate(imgs):
+            if np.max(slice) > 0:
+                imgs_list.append(mm)
+
+        imgs = img_resize(imgs, img_rows, img_cols, imgs_list, equalize=False)
         np.clip(imgs, 0, 7, out=imgs)
         masks.append(imgs.astype('int'))
 
@@ -330,7 +343,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
         print(filename)
         itkimage = sitk.GetImageFromArray(cur_scan)
         imgs = sitk.GetArrayFromImage(itkimage)
-        imgs = img_resize(imgs, img_rows, img_cols, equalize=True)
+        imgs = img_resize(imgs, img_rows, img_cols, imgs_list, equalize=True)
         images.append(imgs)
 
     images = np.concatenate(images , axis=0).reshape(-1, img_rows, img_cols)

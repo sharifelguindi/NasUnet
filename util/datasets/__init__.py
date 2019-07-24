@@ -44,8 +44,8 @@ acronyms = {
     'promise12': 'promise12',
     'camvid': 'camvid'
 }
-dir = 'D:\\pythonProjects\\imgSeg'
-# dir = '/cluster/home/elguinds/publicDatasets/imgSeg/'
+# dir = 'D:\\pythonProjects\\imgSeg'
+dir = '/cluster/home/elguinds/publicDatasets/imgSeg/'
 #=
 #dir = '../../../training_data/imageSeg/'
 

@@ -9,7 +9,7 @@ import torch.nn as nn
 import numpy as np
 from torch.utils import data
 import torch.backends.cudnn as cudnn
-
+from collections import OrderedDict
 sys.path.append('..')
 from util.loss.loss import SegmentationLosses
 from util.datasets import get_dataset
@@ -37,7 +37,7 @@ class RunInference(object):
         parser = argparse.ArgumentParser(description='config')
 
         # Add default argument
-        parser.add_argument('--config', nargs='?', type=str, default='../configs/nas_unet/nas_unet_nerve.yml',
+        parser.add_argument('--config', nargs='?', type=str, default='/cluster/home/elguinds/NasUnet/configs/nas_unet/nas_unet_sharp2019.yml',
                             help='Configuration file to use')
         parser.add_argument('--model', nargs='?', type=str, default='nasunet',
                             help='Model to test')
@@ -72,6 +72,7 @@ class RunInference(object):
         cudnn.enabled = True
         cudnn.benchmark = True
         self.device_id, self.gpus_info = get_gpus_memory_info()
+        self.device_id = 0
         self.device = torch.device('cuda:{}'.format(0 if self.cfg['training']['multi_gpus'] else self.device_id))
 
     def _init_dataset(self):
@@ -148,7 +149,11 @@ class RunInference(object):
             if os.path.isfile(resume):
                 self.logger.info("Loading model and optimizer from checkpoint '{}'".format(resume))
                 checkpoint = torch.load(resume, map_location=self.device)
-                self.model.load_state_dict(checkpoint['model_state'])
+                d1 = OrderedDict()
+                for key, dict in checkpoint['model_state'].items():
+                    new_key = key.replace('module.', '')
+                    d1[new_key] = dict
+                self.model.load_state_dict(d1)
                 return True
             else:
                 self.logger.info("No checkpoint found at '{}'".format(resume))
@@ -186,12 +191,12 @@ class RunInference(object):
         with torch.no_grad():
             for step, (input, target) in enumerate(tbar):
                 input = input.cuda(self.device)
-                print(target)
+                print(input)
                 if not isinstance(target, list):
                     target = target.cuda(self.device)
 
                 predicts = self.model(input)
-
+                print(predicts)
                 # for cityscapes, voc, camvid, test have label
                 if not isinstance(target, list):
                     test_loss = self.criterion(predicts[0], target)

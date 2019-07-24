@@ -36,25 +36,25 @@ searching:
     resume:
 training:
     geno_type: NASUNET
-    init_channels: 32
-    depth: 5
-    epoch: 500
-    batch_size: 2
-    report_freq: 10
+    init_channels: 64
+    depth: 6
+    epoch: 800
+    batch_size: 1
+    report_freq: 5
     n_workers: 1
-    multi_gpus: False
+    multi_gpus: false
     double_down_channel: False
-    grad_clip: 3
+    grad_clip: 5
     max_patience: 100
     model_optimizer:
-        name: 'adam'
+        name: 'adabound'
         lr: 1.0e-3
         weight_decay: 5.0e-4
     loss:
-        name: 'cross_entropy'
-        aux_weight: 0
+        name: 'cross_entropy_with_dice'
+        aux_weight: 0.7
     backbone:
     lr_schedule:
-        name: 'cos'
-        T_max: 100
-    resume:
+        name: 'exp_lr'
+        gamma: 0.995
+    resume: '/cluster/home/elguinds/NasUnet/logs/nasunet/train/sharp2019/20190723-181050/checkpint.pth.tar'
