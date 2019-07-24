@@ -3,7 +3,7 @@ import sys
 import yaml
 import time
 import argparse
-
+from scipy.misc import toimage
 from tqdm import tqdm
 import torch.nn as nn
 import numpy as np
@@ -179,12 +179,14 @@ class RunInference(object):
                     mask = Image.fromarray(
                         (torch.argmax(predicts[0].cpu(), 1)[i] * 255).numpy().astype(np.uint8))
                     img = Image.fromarray(np.array(input[0].cpu()[i, :, :]))
-                    gt = Image.fromarray(np.array(target[0].cpu()[:, :]*255).astype('uint8'))
+                    gt = np.array(target[0].cpu()[:, :]).astype('uint8')
+
                     file_name = str(step)
                     file_name = file_name + '_mask_test.tif'
                     mask.save(os.path.join(desc, file_name))
                     img.save(os.path.join(desc, str(step) + 'img_test.tiff'))
-                    gt.save(os.path.join(desc, str(step) + 'gt_test.tiff'))
+                    toimage(gt, cmin=0, cmax=8).save(os.path.join(desc, str(step) + 'GT_test.tiff'))
+
 
     def test(self, img_queue, split='val', desc=''):
         self.model.eval()
@@ -193,7 +195,6 @@ class RunInference(object):
         tbar = tqdm(img_queue)
         create_exp_dir(desc, desc='=>Save prediction image on')
         with torch.no_grad():
-            print('inside with statement')
             for step, (input, target) in enumerate(tbar):
                 input = input.unsqueeze(0).cuda(self.device)
                 if not isinstance(target, list):
@@ -266,14 +267,12 @@ class RunInference(object):
         # Set up results folder
         if not os.path.exists(self.save_image_path):
             os.makedirs(self.save_image_path)
-
         # if len(self.valid_queue) != 0:
         #     self.logger.info('Begin valid set evaluation')
         #     self.test(self.valid_queue, split='val', desc='promise12')
         if len(self.test_queue) != 0:
             self.logger.info('Begin test set evaluation')
-
-            self.run_image(self.test_queue.dataset, split='test', desc='D:\\pythonProjects\\NasUnet\\predictions\\test_data\\')
+            self.run_image(self.test_queue.dataset, split='test', desc=self.save_image_path)
         self.logger.info('Evaluation done!')
 
 
