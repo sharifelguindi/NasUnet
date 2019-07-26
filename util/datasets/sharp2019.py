@@ -303,7 +303,7 @@ def data_to_array(base_path, store_path, img_rows, img_cols):
         masks = masks.astype(np.uint8)
 
         # Smooth images using CurvatureFlow
-        # images = smooth_images(images)
+        images = smooth_images(images)
         images = images.astype(np.float32)
 
         if count==0: # no normalize

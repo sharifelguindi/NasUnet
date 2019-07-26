@@ -36,10 +36,10 @@ searching:
     resume:
 training:
     geno_type: NASUNET
-    init_channels: 64
-    depth: 6
+    init_channels: 16
+    depth: 4
     epoch: 800
-    batch_size: 4
+    batch_size: 1
     report_freq: 5
     n_workers: 1
     multi_gpus: false
@@ -57,4 +57,4 @@ training:
     lr_schedule:
         name: 'exp_lr'
         gamma: 0.995
-    resume: 'D:\\pythonProjects\\NasUnet\\logs\\nasunet\\train\\sharp2019\\20190723-181050\\checkpint.pth.tar'
+    resume: 'D:\\pythonProjects\\NasUnet\\logs\\nasunet\\train\\sharp2019\\20190725-220801\\checkpint.pth.tar'

@@ -3,7 +3,6 @@ import sys
 import yaml
 import time
 import argparse
-from scipy.misc import toimage
 from tqdm import tqdm
 import torch.nn as nn
 import numpy as np
@@ -23,6 +22,8 @@ from PIL import Image
 import h5py
 from models import geno_searched
 import cv2
+from util.crf import dense_crf
+from util.augmentations import smooth_images
 
 def find(pattern, path):
     result = []
@@ -274,17 +275,22 @@ class RunInference(object):
         scan_norm = cv2.normalize(scan, None, -1.0, 1.0, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
         scan_norm_tranpose = scan_norm.transpose(2, 1, 0)
         images = (scan_norm_tranpose - mu) / sigma
+        images = smooth_images(images)
+        images = images.astype(np.float32)
         mask = np.zeros(np.shape(images))
         img = np.zeros([1, 480, 480])
 
         k = 0
         for i in images:
-            img[0,:,:] = i
+            img[0, :, :] = i
             t_img = torch.tensor(img)
             input = t_img.unsqueeze(1).cuda(self.device).type(dtype=torch.cuda.FloatTensor)
             predicts = self.model(input)
-            m = Image.fromarray((torch.argmax(predicts[0].cpu(), 1)[0]).numpy().astype(np.uint8))
-            mask[k,:,:] = m
+            predict = np.asarray(torch.argmax(predicts[0].cpu(), 1)[0])
+            predict = dense_crf(np.array(input[0].cpu()).astype(np.float), predicts[0].cpu().detach().numpy())
+            m = Image.fromarray((predict).astype(np.uint8))
+            # m = Image.fromarray((torch.argmax(predicts[0].cpu(), 1)[0]).numpy().astype(np.uint8))
+            mask[k, :, :] = m
             k = k + 1
             del input, predicts
             torch.cuda.empty_cache()
